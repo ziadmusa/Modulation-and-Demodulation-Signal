@@ -1,0 +1,58 @@
+function y= triangl (t)
+y=(1-abs(t)).*(t>=-1).*(t<1);
+end
+ts=1.e-4;
+t=-0.04:ts:0.04;
+Ta=0.01; fc=500;
+m_sig=triangl((t+0.01)/0.01)-triangl((t-0.01)/0.01);
+Lm_sig=length(m_sig);
+Lfft=length(t); Lfft=2^ceil(log2(Lfft));
+M_fre=fftshift(fft(m_sig,Lfft));
+freqm=(-Lfft/2:Lfft/2-1)/(Lfft*ts);
+B_m=150;
+h=fir1(40,[B_m*ts]);
+s_am=(1+m_sig).*cos(2*pi*fc*t);
+Lfft=length(t); Lfft=2^ceil(log2(Lfft+1));
+S_am=fftshift(fft(s_am,Lfft));
+freqs=(-Lfft/2:Lfft/2-1)/(Lfft*ts);
+s_dem=s_am.*(s_am>0);
+S_dem=fftshift(fft(s_dem,Lfft));
+s_rec=filter(h,1,s_dem);
+S_rec=fftshift(fft(s_rec,Lfft));
+Trange=[-0.025 0.025 -2 2];
+figure(1)
+subplot(221); td1=plot(t,m_sig);
+axis(Trange); set(td1,'Linewidth',1.5);
+xlabel('{\it t} (sec)'); ylabel('{\it m}({\it t}');
+title('message signal');
+subplot(222); td2=plot(t,s_am);
+axis(Trange); set(td2,'Linewidth',1.5);
+xlabel('{\it t} (sec)'); ylabel('{\it s}_{\rm DSB}({\it t}');
+title('AM modulated signal');
+subplot(223); td3=plot(t,s_dem);
+axis(Trange); set(td3,'Linewidth',1.5);
+xlabel('{\it t} (sec)'); ylabel('{\it e}({\it t}');
+title('rectifed signal without local carrier');
+subplot(224); td4=plot(t,s_rec);
+Trangelow=[-0.025 0.025 -0.5 1];
+axis(Trangelow); set(td4,'Linewidth',1.5);
+xlabel('{\it t} (sec)'); ylabel('{\it m}_d({\it t}');
+title('detected signal');
+Frange=[-700 700 0 200];
+figure(2)
+subplot(221); fd1=plot(freqm,abs(M_fre));
+axis(Frange); set(fd1,'Linewidth',1.5);
+xlabel('{\it f} (Hz)'); ylabel('{\it M}({\it f}');
+title('message spectrum');
+subplot(222); fd2=plot(freqs,S_am);
+axis(Frange); set(fd2,'Linewidth',1.5);
+xlabel('{\it f} (Hz)'); ylabel('{\it s}_{rm AM}({\it f}');
+title('AM spectrum');
+subplot(223); fd3=plot(freqs,abs(S_dem));
+axis(Frange); set(fd3,'Linewidth',1.5);
+xlabel('{\it f} (Hz)'); ylabel('{\it E}({\it f}');
+title('rectified spectrum');
+subplot(224); fd4=plot(freqs,abs(S_rec));
+axis(Frange); set(fd4,'Linewidth',1.5);
+xlabel('{\it f} (Hz)'); ylabel('{\t M}({\it f}');
+title('recoverd spectrum');
